@@ -1,0 +1,199 @@
+openapi: 3.0.2
+info:
+  title: API Asignacion Recursos
+  description: |-
+    Esta API se genero para atender el examen practico amarello, con esta API se pretende cubrir los puntos solicitados para evaluacion.
+    - [The source API definition for the project](https://github.com/ehvc/evaluacion/upload/APITest.yaml)  
+  termsOfService: 
+  contact:
+    email: ehvc.aress@gmail.com
+  version: 1.0.0
+servers:
+  - url: https://apigee-test0001.amarello.cloud/api/v1
+tags:
+  - name: API Test
+    description: Test desarrollo de APIs
+  - name: empleados
+    description: operaciones relacionadas a empleados
+paths:
+  /empleados:
+    get:
+      tags:
+        - empleados
+      summary: este metodo cubre el punto de API proxy y policy de cache
+      description: muestra la lista de empleados
+      operationId: getEmpleados
+      parameters:
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Empleados'          
+        '400':
+          description: bad request
+        '401':
+          description: unauthorized 
+  /empleado/{empleadoId}:
+    get:
+      tags:
+        - empleados
+      summary: este metodo aplica la policy de javascript
+      description: regresa empleado por identificador
+      operationId: getEmpleadoId
+      parameters:
+        - name: empleadoId
+          in: path
+          description: ID de empleado
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empleados'          
+        '400':
+          description: bad request
+        '404':
+          description: not found
+  /empleado:        
+    post:
+      tags:
+        - empleados
+      summary: este metodo aplica la policy de OAuth
+      description: alta nuevo empleado
+      operationId: postEmpleado
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Empleados'
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alta'
+      security:
+        - apitest_auth:
+            - write:apitest
+            - read:apitest
+  /proyectos:
+    get:
+      tags:
+        - proyectos
+      summary: este metodo aplica la transformacion de datos
+      description: muestra la lista de proyectos
+      operationId: getProyectos
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Proyecto'    
+        '400':
+          description: bad request
+        '404':
+          description: not found          
+  /empleado/{empleadoId}/asignacion:
+    get:
+      tags:
+        - proyectos
+      summary: este metodo aplica orquestacion 
+      description: obtiene detalle de empleado y proyecto asignado
+      operationId: getAsignacionEmpleado
+      parameters:
+        - name: empleadoId
+          in: path
+          description: ID de empleado
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asignacion'          
+        '400':
+          description: bad request
+        '404':
+          description: not found
+components:
+  schemas:
+    Alta:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 123
+    Proyecto:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        nombre:
+          type: string
+          example: apificacion core banking
+        cliente:
+          type: string
+          example: banco asiatico
+        responsable:
+          type: string
+          example: juan lopez
+        recursosAsignados:
+          type: integer
+          format: int64
+          example: 125
+    Empleados:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 123
+        nombre:
+          type: string
+          example: edgar
+        telefono:
+          type: string
+          example: 5555555555  
+        asignacion:
+          type: string
+          example: abc123  
+    Asignacion:
+      type: object
+      properties:
+        empleadoDetalle:
+          type: array
+          items:
+            $ref: '#/components/schemas/Empleados'
+        proyectoDetalle:
+          type: array
+          items:
+            $ref: '#/components/schemas/Proyecto'
+  securitySchemes:
+    apitest_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://localhost/oauth/authorize
+          scopes:
+            write:apitest: modificar informacion
+            read:apitest: leer informacion
